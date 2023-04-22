@@ -119,16 +119,78 @@ const getAllReservations = function (guest_id, limit = 10) {
 // };
 
 const getAllProperties = (options, limit = 10) => {
-  return pool
-    .query(`SELECT * FROM properties LIMIT $1`, [limit])
-    .then ((result) => {
-      console.log(results.rows);
-      return results.rows;
-    }) 
-    .catch((err) => {
-      console.log(err.message)
-    })
-}
+  const queryParams = []
+
+  let queryString = `
+  Select properties.*, avg(property_reviews.rating) as average_rating
+  From properties
+  Join property_reviews ON properties.id = property_id
+  `;
+
+  if (options.city) {
+    queryParams.push(`%${options.city}%`)
+    queryString += `Where city Like $${queryParams.length} `;}
+
+    if (options.minimum_price_per_night) {
+      if (queryParams.length >0) {
+        queryString += 'AND ';
+      } else {
+        queryString += 'WHERE ';
+      }
+      queryParams.push(Number(options.minimum_price_per_night * 100))
+      queryString += `cost_per_night >= $${queryParams.length}`
+    }
+
+    if (options.maximum_price_per_night) {
+      if (queryParams.length >0) {
+        queryString += 'AND ';
+      } else {
+        queryString += 'Where ';
+      }
+      queryParams.push(Number(options.maximum_price_per_night * 100))
+      queryString += `cost_per_night <= $${queryParams.length}`
+    }
+
+    if (options.minimum_rating) {
+      if (queryParams.length > 0) {
+        queryString += 'AND ';
+      } else {
+        queryString += 'WHERE ';
+      }
+      queryParams.push(options.minimum_rating)
+      queryString += `rating >= $${queryParams.length} `;
+    }
+    
+
+    queryParams.push(limit)
+    queryString += `
+    Group by properties.id
+    order by cost_per_night
+    Limit $${queryParams.length};
+    `;
+
+    console.log (queryString, queryParams)
+
+    return pool.query(queryString, queryParams).then ((res) => res.rows)
+  }
+
+
+  // return pool
+  //   .query(`SELECT * 
+  //   FROM properties 
+  //   WHERE city,
+  //   owner_id,
+  //   minimum_price_per_night,
+  //   maximum_price_per_night,
+  //   minimum_rating;
+  //   LIMIT $1`, [limit])
+  //   .then ((result) => {
+  //     console.log(results.rows);
+  //     return results.rows;
+  //   }) 
+  //   .catch((err) => {
+  //     console.log(err.message)
+  //   })
 
 
 
