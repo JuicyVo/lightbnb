@@ -53,3 +53,5 @@
 * `routes` contains the router files which are responsible for any HTTP requests to `/users/something` or `/api/something`. 
 * `styles` contains all of the sass files. 
 * `server.js` is the entry point to the application. This connects the routes to the database.
+
+--I Will fix and clean this later but I'm like 3 days behind on work and midterms start next week
