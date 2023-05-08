@@ -70,7 +70,7 @@ const addUser = function(user) {
 
   return pool.query(query)
     .then(result => {
-      return result.row[0];
+      return result.rows[0];
     })
     .catch(err => {
       console.log(err.message);
@@ -87,12 +87,13 @@ const addUser = function(user) {
 
 const getAllReservations = function(guest_id, limit = 10) {
   return pool
-    .query(`SELECT reservations.*, properties.* 
-  FROM reservations
-  JOIN properties ON reservations.property_id = properties.id
-  WHERE guest_id = $1 
-  GROUP BY properties.id, reservations.id
-  LIMIT $2`, [guest_id, limit])
+    .query(`SELECT reservations.*, properties.*, AVG(property_reviews.rating) AS average_rating
+    FROM reservations
+    JOIN properties ON reservations.property_id = properties.id
+    JOIN property_reviews ON properties.id = property_reviews.property_id
+    WHERE guest_id = $1
+    GROUP BY reservations.id, properties.id
+    LIMIT $2`, [guest_id, limit])
     .then((result) => {
       console.log(result.rows);
       return result.rows;
@@ -153,9 +154,8 @@ const getAllProperties = (options, limit = 10) => {
       queryString += 'WHERE ';
     }
     queryParams.push(options.minimum_rating);
-    queryString += `rating >= $${queryParams.length} `;
+    queryString += `(SELECT AVG(rating) FROM property_reviews WHERE property_id = properties.id) >= $${queryParams.length} `;
   }
-
   queryParams.push(limit);
   queryString += `
     Group by properties.id
@@ -174,6 +174,7 @@ const getAllProperties = (options, limit = 10) => {
  * @return {Promise<{}>} A promise to the property.
  */
 const addProperty = function(property) {
+  const cost_per_night_cents = property.cost_per_night * 100;
   const query = {
     text: 'INSERT INTO properties(owner_id, title, description, thumbnail_photo_url, cover_photo_url, cost_per_night, street, city, province, post_code, country, parking_spaces, number_of_bathrooms, number_of_bedrooms) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *',
     values: [
@@ -182,7 +183,7 @@ const addProperty = function(property) {
       property.description,
       property.thumbnail_photo_url,
       property.cover_photo_url,
-      property.cost_per_night,
+      cost_per_night_cents,
       property.street,
       property.city,
       property.province,
@@ -195,6 +196,7 @@ const addProperty = function(property) {
   };
   return pool.query(query.text, query.values)
     .then(res => {
+      console.log ("hihi")
       return res.rows[0];
     })
     .catch(err => {
