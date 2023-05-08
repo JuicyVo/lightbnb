@@ -147,6 +147,16 @@ const getAllProperties = (options, limit = 10) => {
     queryString += `cost_per_night <= $${queryParams.length}`;
   }
 
+  if (options.owner_id) {
+    if (queryParams.length > 0) {
+      queryString += 'AND ';
+    } else {
+      queryString += 'WHERE ';
+    }
+    queryParams.push(options.owner_id);
+    queryString += `owner_id = $${queryParams.length} `;
+  }
+
   if (options.minimum_rating) {
     if (queryParams.length > 0) {
       queryString += 'AND ';

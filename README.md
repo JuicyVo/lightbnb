@@ -1,6 +1,11 @@
 # LightBnB
 
+Lighthouse BnB is an app that will help you manage your travel history. It will allow homeowners to rent out their homes to people on vacation, creating an alternative to hotels and bed and breakfasts. Users can view property information, view their reservations, book reservations, and write reviews. 
+
+The purpose of this project is to design a database and use server-side JavaScript to display the information from queries to web pages.
+
 ## Project Structure
+
 
 ```
 .
@@ -54,4 +59,17 @@
 * `styles` contains all of the sass files. 
 * `server.js` is the entry point to the application. This connects the routes to the database.
 
---I Will fix and clean this later but I'm like 3 days behind on work and midterms start next week
+## Getting Started
+
+1. [Create](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template) a new repository using this repository as a template.
+2. Clone your repository onto your local device.
+3. Install dependencies using the npm install command.
+3. Start the web server using the npm run local command. The app will be served at http://localhost:3000/.
+4. Go to http://localhost:3000/ in your browser.
+
+## Dependencies
+- Express
+- cookie-session
+- bcrypt
+- pg
+- nodemon (as dev.dependency)
