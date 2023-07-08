@@ -64,7 +64,7 @@ const getUserWithId = function(id) {
  */
 const addUser = function(user) {
   const query = {
-    text: 'Insert into users (name, email, password) VALUES ($1, $2, $3)',
+    text: 'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',
     values: [user.name, user.email, user.password]
   };
 
@@ -159,13 +159,15 @@ const getAllProperties = (options, limit = 10) => {
 
   if (options.minimum_rating) {
     if (queryParams.length > 0) {
-      queryString += 'AND ';
+      queryString += ' AND ';
     } else {
-      queryString += 'WHERE ';
+      queryString += ' WHERE ';
     }
     queryParams.push(options.minimum_rating);
-    queryString += `(SELECT AVG(rating) FROM property_reviews WHERE property_id = properties.id) >= $${queryParams.length} `;
+    queryString += `
+      (SELECT AVG(rating) FROM property_reviews WHERE property_id = properties.id) >= $${queryParams.length} `;
   }
+  
   queryParams.push(limit);
   queryString += `
     Group by properties.id
