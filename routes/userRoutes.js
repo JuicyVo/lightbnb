@@ -4,6 +4,7 @@ const database = require("../db/database");
 
 const router = express.Router();
 
+
 // Create a new user
 router.post("/", (req, res) => {
   const user = req.body;
@@ -20,7 +21,6 @@ router.post("/", (req, res) => {
     })
     .catch((e) => res.send(e));
 });
-
 // Log a user in
 router.post("/login", (req, res) => {
   const email = req.body.email;
