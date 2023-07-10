@@ -1,4 +1,4 @@
-const properties = require("./json/properties.json");
+// const properties = require("./json/properties.json");
 const users = require("./json/users.json");
 
 const { Pool } = require('pg');
@@ -11,7 +11,7 @@ const pool = new Pool({
 });
 
 //below used to test if pool works
-// pool.query(`SELECT title FROM properties LIMIT 10;`).then(response => {console.log(response)})
+pool.query(`SELECT title FROM properties LIMIT 10;`).then(response => {console.log(response)})
 
 /// Users
 
@@ -48,7 +48,9 @@ const getUserWithId = function(id) {
   };
   return pool.query(query)
     .then((result) => {
+      console.log (id)
       console.log('testing user id');
+      console.log (result.rows[0])
       return result.rows[0];
     })
     .catch((err) => {
@@ -119,7 +121,7 @@ const getAllProperties = (options, limit = 10) => {
   let queryString = `
   Select properties.*, avg(property_reviews.rating) as average_rating
   From properties
-  Join property_reviews ON properties.id = property_id
+  Left Outer Join property_reviews ON properties.id = property_id
   `;
 
   if (options.city) {
@@ -157,17 +159,17 @@ const getAllProperties = (options, limit = 10) => {
     queryString += `owner_id = $${queryParams.length} `;
   }
 
-  if (options.minimum_rating) {
-    if (queryParams.length > 0) {
-      queryString += ' AND ';
-    } else {
-      queryString += ' WHERE ';
-    }
-    queryParams.push(options.minimum_rating);
-    queryString += `
-      (SELECT AVG(rating) FROM property_reviews WHERE property_id = properties.id) >= $${queryParams.length} `;
+if (options.minimum_rating) {
+  if (queryParams.length > 0) {
+    queryString += ' AND ';
+  } else {
+    queryString += ' WHERE ';
   }
-  
+  queryParams.push(options.minimum_rating);
+  queryString += `
+    (SELECT AVG(rating) FROM property_reviews WHERE property_id = properties.id) >= $${queryParams.length} `;
+}
+
   queryParams.push(limit);
   queryString += `
     Group by properties.id
@@ -176,8 +178,9 @@ const getAllProperties = (options, limit = 10) => {
     `;
 
   console.log(queryString, queryParams);
-
-  return pool.query(queryString, queryParams).then((res) => res.rows);
+  const result =pool.query(queryString, queryParams).then((res) => res.rows)
+  return result
+  // return pool.query(queryString, queryParams).then((res) => res.rows);
 };
 
 /**
@@ -187,6 +190,7 @@ const getAllProperties = (options, limit = 10) => {
  */
 const addProperty = function(property) {
   const cost_per_night_cents = property.cost_per_night * 100;
+  console.log(property)
   const query = {
     text: 'INSERT INTO properties(owner_id, title, description, thumbnail_photo_url, cover_photo_url, cost_per_night, street, city, province, post_code, country, parking_spaces, number_of_bathrooms, number_of_bedrooms) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *',
     values: [
@@ -201,15 +205,16 @@ const addProperty = function(property) {
       property.province,
       property.post_code,
       property.country,
-      property.parking_spaces,
-      property.number_of_bathrooms,
-      property.number_of_bedrooms
+      Number(property.parking_spaces),
+      Number(property.number_of_bathrooms),
+      Number(property.number_of_bedrooms)
     ]
   };
   return pool.query(query.text, query.values)
     .then(res => {
-      console.log ("hihi")
+     
       return res.rows[0];
+
     })
     .catch(err => {
       console.log(err.message);
