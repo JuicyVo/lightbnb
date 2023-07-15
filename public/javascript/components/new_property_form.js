@@ -78,7 +78,6 @@ $(() => {
             <input placeholder="Postal Code" type="text" name="post_code" id="new-property-form__zip" />
           </div>
         </div>
-
         <div class="new-property-form__field-wrapper">
             <button>Create</button>
             <a id="property-form__cancel" href="#">Cancel</a>
